@@ -22,8 +22,14 @@ ARMAN_PID=""
 echo "Generating nginx configuration..."
 envsubst '${NGINX_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-echo "Testing Xray configuration..."
+XRAY_CONFIG="/usr/bin/config.json"
+
+echo "Checking mounted Xray configuration..."
+[ -s /etc/xray/config.json ] || { echo "ERROR: /etc/xray/config.json is missing or empty."; exit 1; }
 /usr/bin/xray -test -config /etc/xray/config.json
+cp /etc/xray/config.json "$XRAY_CONFIG"
+chmod 600 "$XRAY_CONFIG"
+echo "Xray config copied to $XRAY_CONFIG"
 
 echo "Testing Nginx configuration..."
 nginx -t
@@ -45,7 +51,7 @@ stop_arman() {
     ARMAN_PID=""
 }
 start_xray() {
-    /usr/bin/xray -config /etc/xray/config.json &
+    /usr/bin/xray -config "$XRAY_CONFIG" &
     XRAY_PID=$!
     echo "Xray started with PID $XRAY_PID"
 }
@@ -55,6 +61,9 @@ restart_xray() {
         echo "Invalid Xray config; keeping current process."
         return 1
     fi
+    cp /etc/xray/config.json "$XRAY_CONFIG"
+    chmod 600 "$XRAY_CONFIG"
+    echo "Updated Xray config copy at $XRAY_CONFIG"
     echo "Restarting Xray..."
     kill -TERM "$XRAY_PID" 2>/dev/null || true
     wait "$XRAY_PID" 2>/dev/null || true

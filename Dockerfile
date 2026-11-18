@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       bash ca-certificates curl gettext-base jq nginx nano procps socat sqlite3 tar tzdata unzip \
+       bash ca-certificates curl gettext-base jq musl nginx nano procps socat sqlite3 tar tzdata unzip \
     && ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
     && mkdir -p /etc/xray /var/log/xray /usr/share/xray /usr/local/bin/pt /root/x \
@@ -18,11 +18,12 @@ RUN apt-get update \
 # Xray is installed from its official Linux AMD64 release, not from an Alpine image.
 RUN set -eux; \
     curl -fL "https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VERSION}/Xray-linux-64.zip" -o /tmp/xray.zip; \
-    unzip -o /tmp/xray.zip xray -d /usr/bin; \
-    chmod 755 /usr/bin/xray; \
-    rm -f /tmp/xray.zip; \
-    curl -fL https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geosite.dat -o /usr/share/xray/geosite.dat; \
-    curl -fL https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geoip.dat -o /usr/share/xray/geoip.dat; \
+    mkdir -p /tmp/xray /usr/local/share/xray; \
+    unzip -o /tmp/xray.zip -d /tmp/xray; \
+    install -m 755 /tmp/xray/xray /usr/bin/xray; \
+    [ ! -f /tmp/xray/geoip.dat ] || install -m 644 /tmp/xray/geoip.dat /usr/local/share/xray/geoip.dat; \
+    [ ! -f /tmp/xray/geosite.dat ] || install -m 644 /tmp/xray/geosite.dat /usr/local/share/xray/geosite.dat; \
+    rm -rf /tmp/xray /tmp/xray.zip; \
     /usr/bin/xray version
 
 # SNI Spoof (musl build is self-contained and can run on Debian).

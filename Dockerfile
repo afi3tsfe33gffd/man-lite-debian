@@ -55,8 +55,8 @@ RUN set -eux; \
     rm -rf /tmp/aether.tar.gz /tmp/aether /tmp/pt
 
 # Default valid config. Mount your own /etc/xray directory to provide production config.
-RUN printf '%s\\n' '{"inbounds":[],"outbounds":[{"protocol":"freedom","settings":{}}]}' > /etc/xray/config.json \
-    && printf '%s\\n' '{"listeners":[]}' > /etc/xray/pconfig.json
+RUN printf '%s\n' '{"inbounds":[],"outbounds":[{"protocol":"freedom","settings":{}}]}' > /etc/xray/config.json \
+    && printf '%s\n' '{"listeners":[]}' > /etc/xray/pconfig.json
 
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY start.sh /start.sh
